@@ -55,5 +55,29 @@ jobs:
           [ "$missing" -eq 0 ] && echo "All required files present."
           exit "$missing"
 
-  # Frontend and backend jobs (lint, typecheck, test, build) are added with
-  # their code in the milestones. They run only when their folders exist.
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.11.26"
+      - name: Set up Python
+        run: uv python install 3.12
+      - name: Install dependencies
+        run: uv sync
+      - name: Format check
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run mypy
+      - name: Test
+        run: uv run pytest -v
+
+  # The frontend job (lint, typecheck, test, build) is added with the web app.
