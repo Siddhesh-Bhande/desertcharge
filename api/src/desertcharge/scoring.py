@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from enum import Enum
 
 ACCESS_TARGET_PORTS = 3.0
@@ -66,3 +67,38 @@ def desert_score(
     demand_norm = normalize(population, pop_min, pop_max)
     gap = supply_gap(nearest_dc_fast_miles, weighted_chargers_10mi)
     return round(100 * math.sqrt(demand_norm) * gap)
+
+
+@dataclass(frozen=True, slots=True)
+class HexScoreResult:
+    """The scored output for one hex, including factors for display."""
+
+    score: int
+    band: ScoreBand
+    population: float
+    nearest_dc_fast_miles: float
+    chargers_10mi: float
+
+
+def score_hex(
+    population: float,
+    pop_min: float,
+    pop_max: float,
+    nearest_dc_fast_miles: float,
+    weighted_chargers_10mi: float,
+) -> HexScoreResult:
+    """Score one hex and return the score, band, and contributing factors."""
+    score = desert_score(
+        population=population,
+        pop_min=pop_min,
+        pop_max=pop_max,
+        nearest_dc_fast_miles=nearest_dc_fast_miles,
+        weighted_chargers_10mi=weighted_chargers_10mi,
+    )
+    return HexScoreResult(
+        score=score,
+        band=band_for_score(score),
+        population=population,
+        nearest_dc_fast_miles=nearest_dc_fast_miles,
+        chargers_10mi=weighted_chargers_10mi,
+    )

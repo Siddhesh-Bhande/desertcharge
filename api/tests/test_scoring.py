@@ -1,11 +1,13 @@
 import math
 
 from desertcharge.scoring import (
+    HexScoreResult,
     ScoreBand,
     band_for_score,
     clamp,
     desert_score,
     normalize,
+    score_hex,
     supply_gap,
 )
 
@@ -108,3 +110,31 @@ def test_desert_score_is_bounded_0_100() -> None:
         weighted_chargers_10mi=0.0,
     )
     assert 0 <= score <= 100
+
+
+def test_score_hex_returns_result_with_factors() -> None:
+    result = score_hex(
+        population=250.0,
+        pop_min=0.0,
+        pop_max=1000.0,
+        nearest_dc_fast_miles=41.0,
+        weighted_chargers_10mi=0.0,
+    )
+    assert isinstance(result, HexScoreResult)
+    assert 0 <= result.score <= 100
+    assert result.band.label in {"served", "good", "moderate", "poor", "desert"}
+    assert result.nearest_dc_fast_miles == 41.0
+    assert result.chargers_10mi == 0.0
+    assert result.population == 250.0
+
+
+def test_score_hex_band_matches_score() -> None:
+    result = score_hex(
+        population=1000.0,
+        pop_min=0.0,
+        pop_max=1000.0,
+        nearest_dc_fast_miles=40.0,
+        weighted_chargers_10mi=0.0,
+    )
+    assert result.score == 100
+    assert result.band.label == "desert"
