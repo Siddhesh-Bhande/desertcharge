@@ -1,0 +1,21 @@
+[
+  {
+    "ID": 12345,
+    "AddressInfo": {"Title": "Baker Travel Center", "Latitude": 35.2686, "Longitude": -116.0786},
+    "OperatorInfo": {"Title": "Electrify America"},
+    "NumberOfPoints": 4,
+    "Connections": [
+      {"PowerKW": 150.0, "LevelID": 3, "ConnectionType": {"Title": "CCS (Type 1)"}, "Level": {"IsFastChargeCapable": true}},
+      {"PowerKW": 50.0, "LevelID": 3, "ConnectionType": {"Title": "CHAdeMO"}, "Level": {"IsFastChargeCapable": true}}
+    ]
+  },
+  {
+    "ID": 67890,
+    "AddressInfo": {"Title": "Barstow Library", "Latitude": 34.8958, "Longitude": -117.0173},
+    "OperatorInfo": {"Title": "ChargePoint"},
+    "NumberOfPoints": 2,
+    "Connections": [
+      {"PowerKW": 6.6, "LevelID": 2, "ConnectionType": {"Title": "J1772"}, "Level": {"IsFastChargeCapable": false}}
+    ]
+  }
+]
