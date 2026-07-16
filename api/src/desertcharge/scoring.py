@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import math
 from enum import Enum
+
+ACCESS_TARGET_PORTS = 3.0
+FULL_GAP_MILES = 30.0
 
 
 class ScoreBand(Enum):
@@ -30,3 +34,35 @@ def band_for_score(score: int) -> ScoreBand:
     if score <= 80:
         return ScoreBand.POOR
     return ScoreBand.DESERT
+
+
+def clamp(value: float, low: float, high: float) -> float:
+    """Constrain value to the inclusive range [low, high]."""
+    return max(low, min(high, value))
+
+
+def normalize(value: float, low: float, high: float) -> float:
+    """Min-max normalize value into [0, 1]. A degenerate range maps to 0."""
+    if high <= low:
+        return 0.0
+    return clamp((value - low) / (high - low), 0.0, 1.0)
+
+
+def supply_gap(nearest_dc_fast_miles: float, weighted_chargers_10mi: float) -> float:
+    """Return the 0..1 supply shortfall. Higher means worse coverage."""
+    distance_gap = clamp(nearest_dc_fast_miles / FULL_GAP_MILES, 0.0, 1.0)
+    access = min(1.0, weighted_chargers_10mi / ACCESS_TARGET_PORTS)
+    return 0.5 * distance_gap + 0.5 * (1.0 - access)
+
+
+def desert_score(
+    population: float,
+    pop_min: float,
+    pop_max: float,
+    nearest_dc_fast_miles: float,
+    weighted_chargers_10mi: float,
+) -> int:
+    """Return the 0-100 desert score for one hex's inputs."""
+    demand_norm = normalize(population, pop_min, pop_max)
+    gap = supply_gap(nearest_dc_fast_miles, weighted_chargers_10mi)
+    return round(100 * math.sqrt(demand_norm) * gap)
