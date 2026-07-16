@@ -8,10 +8,13 @@ from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from testcontainers.postgres import PostgresContainer
 
 API_DIR = Path(__file__).resolve().parent.parent
+
+_TABLES = "chargers, census_tracts, hex_scores, best_sites"
 
 
 @pytest.fixture(scope="session")
@@ -31,9 +34,16 @@ def postgis_url() -> Iterator[str]:
 
 @pytest.fixture
 async def session(postgis_url: str) -> AsyncIterator[AsyncSession]:
-    """Yield a clean async session against the migrated test database."""
+    """Yield a clean async session against the migrated test database.
+
+    Every table is truncated first, so tests that commit stay isolated on the
+    shared container database.
+    """
     engine = create_async_engine(postgis_url)
     factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as cleanup:
+        await cleanup.execute(text(f"TRUNCATE {_TABLES} RESTART IDENTITY CASCADE"))
+        await cleanup.commit()
     async with factory() as sess:
         yield sess
     await engine.dispose()
