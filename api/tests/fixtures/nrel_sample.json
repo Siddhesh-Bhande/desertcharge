@@ -1,0 +1,26 @@
+{
+  "fuel_stations": [
+    {
+      "id": 1001,
+      "station_name": "Primm Valley Casino",
+      "latitude": 35.6103,
+      "longitude": -115.3897,
+      "ev_network": "Tesla",
+      "ev_connector_types": ["TESLA", "J1772COMBO"],
+      "ev_dc_fast_num": 8,
+      "ev_level2_evse_num": 2,
+      "ev_level1_evse_num": null
+    },
+    {
+      "id": 1002,
+      "station_name": "Kingman City Hall",
+      "latitude": 35.1894,
+      "longitude": -114.0530,
+      "ev_network": "Non-Networked",
+      "ev_connector_types": ["J1772"],
+      "ev_dc_fast_num": null,
+      "ev_level2_evse_num": 2,
+      "ev_level1_evse_num": null
+    }
+  ]
+}
