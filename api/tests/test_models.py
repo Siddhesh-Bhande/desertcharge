@@ -25,3 +25,10 @@ def test_hex_score_primary_key_is_h3_index() -> None:
 def test_models_have_expected_tablenames() -> None:
     assert CensusTract.__tablename__ == "census_tracts"
     assert BestSite.__tablename__ == "best_sites"
+
+
+def test_census_tract_has_point_centroid() -> None:
+    cols = CensusTract.__table__.columns
+    assert isinstance(cols["centroid"].type, Geometry)
+    assert cols["centroid"].type.geometry_type == "POINT"
+    assert "geom" not in cols
