@@ -173,7 +173,9 @@ export function MapView(props: MapViewProps) {
 
   useEffect(() => {
     overlayRef.current?.setProps({ layers: buildLayers(props) })
-  }, [props])
+    // Rebuild only when the rendered data or active layer changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.layer, props.chargers, props.bestSites, props.grid, props.selected])
 
   useEffect(() => {
     if (!props.selected || !mapRef.current) return

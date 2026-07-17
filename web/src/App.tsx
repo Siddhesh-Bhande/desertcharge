@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 
 import { useBestSites, useChargers, useGrid, useScore } from './api/hooks'
 import type { Bbox } from './api/types'
@@ -6,10 +6,15 @@ import { BottomSheet } from './components/BottomSheet'
 import { FilterSheet } from './components/FilterSheet'
 import { LayerToggle } from './components/LayerToggle'
 import { Legend } from './components/Legend'
-import { MapView } from './components/MapView'
 import { ScorePanel } from './components/ScorePanel'
 import { SearchBar } from './components/SearchBar'
+import { useDebouncedValue } from './lib/useDebounce'
 import { useAppStore } from './store/useAppStore'
+
+// The map pulls in deck.gl and maplibre; load it after the shell paints.
+const MapView = lazy(() =>
+  import('./components/MapView').then((module) => ({ default: module.MapView })),
+)
 
 export function App() {
   const selected = useAppStore((state) => state.selected)
@@ -23,9 +28,10 @@ export function App() {
   const setFiltersOpen = useAppStore((state) => state.setFiltersOpen)
 
   const [bbox, setBbox] = useState<Bbox | null>(null)
+  const debouncedBbox = useDebouncedValue(bbox, 400)
 
   const score = useScore(selected)
-  const chargers = useChargers(bbox, filters, true)
+  const chargers = useChargers(debouncedBbox, filters, true)
   const bestSites = useBestSites(layer === 'best-sites')
   const grid = useGrid(layer === 'heat')
 
@@ -33,15 +39,18 @@ export function App() {
 
   return (
     <main className="relative h-full w-full overflow-hidden bg-basalt-900">
-      <MapView
-        selected={selected}
-        chargers={chargerData}
-        bestSites={bestSites.data ?? []}
-        grid={grid.data ?? []}
-        layer={layer}
-        onSelect={(lat, lng) => select({ lat, lng })}
-        onBboxChange={setBbox}
-      />
+      <h1 className="sr-only">DesertCharge: find charging deserts in the US Desert Southwest</h1>
+      <Suspense fallback={<div className="absolute inset-0 bg-basalt-900" />}>
+        <MapView
+          selected={selected}
+          chargers={chargerData}
+          bestSites={bestSites.data ?? []}
+          grid={grid.data ?? []}
+          layer={layer}
+          onSelect={(lat, lng) => select({ lat, lng })}
+          onBboxChange={setBbox}
+        />
+      </Suspense>
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col items-center gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <div className="pointer-events-auto w-full max-w-md">
