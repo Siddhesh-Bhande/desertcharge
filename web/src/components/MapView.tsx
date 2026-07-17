@@ -201,5 +201,7 @@ export function MapView(props: MapViewProps) {
     })
   }, [props.selected])
 
-  return <div ref={containerRef} className="absolute inset-0" aria-label="Coverage map" />
+  // Explicit height: maplibre adds `.maplibregl-map { position: relative }` to this
+  // element, which would override `absolute inset-0` and collapse its height to 0.
+  return <div ref={containerRef} className="h-full w-full" aria-label="Coverage map" />
 }
