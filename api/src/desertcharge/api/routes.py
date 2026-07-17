@@ -11,13 +11,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from desertcharge.api.deps import get_http_client, get_session
 from desertcharge.api.geocode import geocode
 from desertcharge.api.read import chargers_in_bbox, list_best_sites, score_point
+from desertcharge.api.route import analyze_route
 from desertcharge.api.schemas import (
     BestSiteOut,
     ChargerOut,
     GeocodeResult,
+    RouteRequest,
+    RouteResponse,
     ScoreResponse,
     verdict_for,
 )
+from desertcharge.config import get_settings
 from desertcharge.scoring import band_for_score
 
 router = APIRouter()
@@ -87,3 +91,18 @@ async def geocode_place(
         return await geocode(q, client)
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail="Geocoding service is unavailable.") from exc
+
+
+@router.post("/route", response_model=RouteResponse)
+async def route(
+    session: SessionDep,
+    client: HttpClientDep,
+    request: RouteRequest,
+) -> RouteResponse:
+    api_key = get_settings().openrouteservice_api_key
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Routing is not configured.")
+    try:
+        return await analyze_route(session, request.origin, request.destination, api_key, client)
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Routing service is unavailable.") from exc

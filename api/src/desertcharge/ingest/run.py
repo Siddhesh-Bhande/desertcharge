@@ -16,7 +16,7 @@ from desertcharge.ingest.merge import merge_chargers
 from desertcharge.ingest.nrel import fetch_nrel
 from desertcharge.ingest.openchargemap import fetch_openchargemap
 from desertcharge.ingest.records import ChargerRecord
-from desertcharge.region import REGION
+from desertcharge.region import REGION, tile_bbox
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +33,15 @@ async def _safe_fetch(name: str, coro: Awaitable[list[ChargerRecord]]) -> list[C
 async def _fetch_all() -> list[ChargerRecord]:
     settings = get_settings()
     async with httpx.AsyncClient() as client:
-        ocm = await _safe_fetch(
-            "openchargemap",
-            fetch_openchargemap(REGION, settings.openchargemap_api_key, client),
-        )
+        # Fetch OpenChargeMap per tile so dense areas do not hit the per-request cap.
+        ocm: list[ChargerRecord] = []
+        for tile in tile_bbox(REGION, cols=4, rows=4):
+            ocm.extend(
+                await _safe_fetch(
+                    "openchargemap",
+                    fetch_openchargemap(tile, settings.openchargemap_api_key, client),
+                )
+            )
         nrel = await _safe_fetch("nrel", fetch_nrel(REGION, settings.nrel_api_key, client))
     merged = merge_chargers(ocm, nrel)
     logger.info("Fetched OCM=%d NREL=%d merged=%d", len(ocm), len(nrel), len(merged))
