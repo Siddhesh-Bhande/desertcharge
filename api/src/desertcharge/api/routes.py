@@ -4,17 +4,26 @@ from __future__ import annotations
 
 from typing import Annotated
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from desertcharge.api.deps import get_session
+from desertcharge.api.deps import get_http_client, get_session
+from desertcharge.api.geocode import geocode
 from desertcharge.api.read import chargers_in_bbox, list_best_sites, score_point
-from desertcharge.api.schemas import BestSiteOut, ChargerOut, ScoreResponse, verdict_for
+from desertcharge.api.schemas import (
+    BestSiteOut,
+    ChargerOut,
+    GeocodeResult,
+    ScoreResponse,
+    verdict_for,
+)
 from desertcharge.scoring import band_for_score
 
 router = APIRouter()
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
+HttpClientDep = Annotated[httpx.AsyncClient, Depends(get_http_client)]
 
 
 @router.get("/health")
@@ -67,3 +76,14 @@ async def best_sites(
 ) -> list[BestSiteOut]:
     rows = await list_best_sites(session, limit)
     return [BestSiteOut(**row) for row in rows]
+
+
+@router.get("/geocode", response_model=list[GeocodeResult])
+async def geocode_place(
+    client: HttpClientDep,
+    q: Annotated[str, Query(min_length=1, max_length=120)],
+) -> list[GeocodeResult]:
+    try:
+        return await geocode(q, client)
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Geocoding service is unavailable.") from exc

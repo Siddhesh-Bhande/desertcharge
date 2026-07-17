@@ -48,3 +48,10 @@ class BestSiteOut(BaseModel):
     est_population_served: int
     gap_miles_closed: float
     reason: str | None
+
+
+class GeocodeResult(BaseModel):
+    name: str
+    lat: float
+    lng: float
+    kind: str | None
