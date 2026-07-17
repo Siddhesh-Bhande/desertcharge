@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { bandForScore, scoreColorRgba } from './tokens'
+import { bandForScore, corridorColor, scoreColorRgba } from './tokens'
 
 describe('bandForScore', () => {
   it('maps score ranges to bands', () => {
@@ -21,5 +21,16 @@ describe('scoreColorRgba', () => {
 
   it('applies the given alpha', () => {
     expect(scoreColorRgba(10, 120)[3]).toBe(120)
+  })
+})
+
+describe('corridorColor', () => {
+  it('is desert red when far or unknown', () => {
+    expect(corridorColor(null)).toBe('#B23A24')
+    expect(corridorColor(40)).toBe('#B23A24')
+  })
+
+  it('is served teal when a charger is close', () => {
+    expect(corridorColor(1)).toBe('#1B9E8A')
   })
 })

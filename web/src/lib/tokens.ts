@@ -32,6 +32,15 @@ export function bandForScore(score: number): ScoreBand {
   return scoreBands.find((band) => score <= band.max) ?? scoreBands[scoreBands.length - 1]!
 }
 
+/** Color a route point by how far the nearest DC fast charger is (miles). */
+export function corridorColor(miles: number | null): string {
+  if (miles === null || miles > 25) return '#B23A24'
+  if (miles > 15) return '#D57A33'
+  if (miles > 8) return '#E6B23A'
+  if (miles > 3) return '#7FB069'
+  return '#1B9E8A'
+}
+
 /** RGBA tuple for a score, for deck.gl fill colors. */
 export function scoreColorRgba(score: number, alpha = 180): [number, number, number, number] {
   const hex = bandForScore(score).color

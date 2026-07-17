@@ -7,6 +7,7 @@ import type {
   ChargerFilters,
   GeocodeResult,
   HexScore,
+  RouteResponse,
   ScoreResponse,
 } from './types'
 
@@ -48,6 +49,24 @@ export function fetchBestSites(limit = 10): Promise<BestSite[]> {
 
 export function fetchGeocode(query: string): Promise<GeocodeResult[]> {
   return getJson<GeocodeResult[]>('/api/geocode', { q: query })
+}
+
+export async function fetchRoute(
+  origin: { lat: number; lng: number },
+  destination: { lat: number; lng: number },
+): Promise<RouteResponse> {
+  const response = await fetch(`${API_BASE}/api/route`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      origin: [origin.lat, origin.lng],
+      destination: [destination.lat, destination.lng],
+    }),
+  })
+  if (!response.ok) {
+    throw new Error(`Route request failed with ${response.status}`)
+  }
+  return (await response.json()) as RouteResponse
 }
 
 /** The static scored grid for the heat layer. Absent in dev is fine (empty). */
