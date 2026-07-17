@@ -1,0 +1,6 @@
+{
+  "features": [
+    {"attributes": {"STATE": "32", "COUNTY": "003", "TRACT": "005322", "pop": 1580}},
+    {"attributes": {"STATE": "32", "COUNTY": "003", "TRACT": "005115", "pop": 2914}}
+  ]
+}
