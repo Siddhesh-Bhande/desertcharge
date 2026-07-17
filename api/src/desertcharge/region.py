@@ -21,3 +21,6 @@ class Bbox:
 
 # Southern California, Nevada, and Arizona.
 REGION = Bbox(min_lat=31.3, min_lng=-120.6, max_lat=42.1, max_lng=-108.9)
+
+# State FIPS codes for the region, keyed by USPS abbreviation.
+REGION_STATES: dict[str, str] = {"CA": "06", "NV": "32", "AZ": "04"}

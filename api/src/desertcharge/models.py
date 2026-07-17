@@ -34,7 +34,7 @@ class CensusTract(Base):
 
     geoid: Mapped[str] = mapped_column(String(11), primary_key=True)
     state: Mapped[str] = mapped_column(String(2))
-    geom: Mapped[object] = mapped_column(Geometry("MULTIPOLYGON", srid=4326))
+    centroid: Mapped[object] = mapped_column(Geometry("POINT", srid=4326))
     population: Mapped[int] = mapped_column(Integer, default=0)
     households: Mapped[int | None] = mapped_column(Integer)
 
