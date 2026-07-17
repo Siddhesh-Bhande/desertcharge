@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     database_url: str = DEFAULT_DATABASE_URL
     openchargemap_api_key: str = ""
     nrel_api_key: str = ""
+    allowed_origins: str = "http://localhost:5173"
 
     @property
     def sync_database_url(self) -> str:
