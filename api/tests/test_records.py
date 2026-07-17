@@ -1,5 +1,5 @@
 from desertcharge.ingest.records import ChargerRecord, normalize_connector
-from desertcharge.region import REGION, Bbox
+from desertcharge.region import REGION, Bbox, tile_bbox
 
 
 def test_region_is_the_desert_southwest() -> None:
@@ -9,6 +9,19 @@ def test_region_is_the_desert_southwest() -> None:
     assert REGION.min_lng < -115.0 < REGION.max_lng
     assert REGION.contains(35.2686, -116.0786)  # Baker, CA
     assert not REGION.contains(47.6, -122.3)  # Seattle, out of region
+
+
+def test_tile_bbox_covers_the_region() -> None:
+    tiles = tile_bbox(REGION, cols=4, rows=4)
+    assert len(tiles) == 16
+    # The tiles span the full region without gaps.
+    assert min(t.min_lat for t in tiles) == REGION.min_lat
+    assert max(t.max_lat for t in tiles) == REGION.max_lat
+    assert min(t.min_lng for t in tiles) == REGION.min_lng
+    assert max(t.max_lng for t in tiles) == REGION.max_lng
+    # Baker falls inside exactly one tile.
+    covering = [t for t in tiles if t.contains(35.2686, -116.0786)]
+    assert len(covering) == 1
 
 
 def test_normalize_connector_canonical_forms() -> None:

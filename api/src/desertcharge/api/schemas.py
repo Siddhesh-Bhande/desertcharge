@@ -55,3 +55,22 @@ class GeocodeResult(BaseModel):
     lat: float
     lng: float
     kind: str | None
+
+
+class RouteRequest(BaseModel):
+    origin: tuple[float, float]  # (lat, lng)
+    destination: tuple[float, float]
+
+
+class RouteSample(BaseModel):
+    lat: float
+    lng: float
+    fraction: float
+    nearest_dc_fast_miles: float | None
+
+
+class RouteResponse(BaseModel):
+    geometry: list[tuple[float, float]]  # (lng, lat) pairs for the map
+    distance_miles: float
+    worst_gap_miles: float
+    samples: list[RouteSample]
