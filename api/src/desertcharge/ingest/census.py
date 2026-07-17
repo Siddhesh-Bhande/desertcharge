@@ -8,6 +8,8 @@ from typing import Any
 
 import httpx
 
+from desertcharge.region import REGION
+
 BASE_URL = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer"
 _PAGE = 5000
 
@@ -113,8 +115,17 @@ async def _fetch_populations(client: httpx.AsyncClient, fips: str) -> dict[str, 
     return parse_populations(response.json())
 
 
+def filter_to_region(records: list[TractRecord]) -> list[TractRecord]:
+    """Keep only tracts whose centroid falls inside the region bbox.
+
+    Chargers are fetched by the region bbox, so census must be clipped to the same
+    area; otherwise tracts outside the charger coverage would look like false deserts.
+    """
+    return [r for r in records if REGION.contains(r.lat, r.lng)]
+
+
 async def fetch_tracts(fips: str, state: str, client: httpx.AsyncClient) -> list[TractRecord]:
-    """Fetch and join tract centroids and population for one state."""
+    """Fetch, join, and region-clip tract centroids and population for one state."""
     centroids = await _fetch_centroids(client, fips)
     populations = await _fetch_populations(client, fips)
-    return build_tract_records(centroids, populations, state)
+    return filter_to_region(build_tract_records(centroids, populations, state))

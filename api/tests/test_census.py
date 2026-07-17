@@ -7,6 +7,7 @@ from desertcharge.ingest.census import (
     TractRecord,
     build_tract_records,
     fetch_tracts,
+    filter_to_region,
     parse_centroids,
     parse_populations,
 )
@@ -48,6 +49,13 @@ def test_build_tract_records_joins_on_geoid() -> None:
     assert by_id["32003005322"].population == 1580
     assert by_id["32003005322"].lat == 36.1
     assert by_id["32003005322"].state == "NV"
+
+
+def test_filter_to_region_drops_out_of_region_tracts() -> None:
+    baker = TractRecord("06071000100", "CA", 3000, 35.27, -116.08)  # Mojave, in region
+    sf = TractRecord("06075010100", "CA", 4000, 37.77, -122.42)  # SF Bay, west of bbox
+    kept = filter_to_region([baker, sf])
+    assert [r.geoid for r in kept] == ["06071000100"]
 
 
 async def test_fetch_tracts_queries_both_layers() -> None:
