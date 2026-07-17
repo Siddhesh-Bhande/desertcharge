@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { fetchGeocode } from '../api/client'
 import type { GeocodeResult } from '../api/types'
+import { useDebouncedValue } from '../lib/useDebounce'
 import { useAppStore } from '../store/useAppStore'
 
 export function SearchBar() {
@@ -10,27 +11,36 @@ export function SearchBar() {
   const [results, setResults] = useState<GeocodeResult[]>([])
   const [open, setOpen] = useState(false)
   const [locating, setLocating] = useState(false)
+  const debouncedQuery = useDebouncedValue(query.trim(), 300)
+  // Ignore a choice we just made so it does not re-trigger a search.
+  const skipRef = useRef('')
 
-  async function runSearch(value: string) {
-    setQuery(value)
-    if (value.trim().length < 2) {
-      setResults([])
-      setOpen(false)
+  useEffect(() => {
+    if (debouncedQuery.length < 2 || debouncedQuery === skipRef.current) {
       return
     }
-    try {
-      const found = await fetchGeocode(value.trim())
-      setResults(found)
-      setOpen(found.length > 0)
-    } catch {
-      setResults([])
-      setOpen(false)
+    let active = true
+    fetchGeocode(debouncedQuery)
+      .then((found) => {
+        if (!active) return
+        setResults(found)
+        setOpen(found.length > 0)
+      })
+      .catch(() => {
+        if (!active) return
+        setResults([])
+        setOpen(false)
+      })
+    return () => {
+      active = false
     }
-  }
+  }, [debouncedQuery])
 
   function choose(result: GeocodeResult) {
-    select({ lat: result.lat, lng: result.lng, label: result.name.split(',')[0] })
-    setQuery(result.name.split(',')[0] ?? '')
+    const label = result.name.split(',')[0] ?? ''
+    skipRef.current = label
+    select({ lat: result.lat, lng: result.lng, label })
+    setQuery(label)
     setOpen(false)
   }
 
@@ -53,12 +63,12 @@ export function SearchBar() {
 
   return (
     <div className="relative">
-      <div className="flex h-13 items-center gap-3 rounded-full bg-basalt-800/95 pl-4.5 pr-2 shadow-lg ring-[1.5px] ring-brass-400 backdrop-blur">
+      <div className="flex h-13 items-center gap-3 rounded-full bg-basalt-800/95 pl-4.5 pr-2 shadow-lg ring-[1.5px] ring-brass-400 backdrop-blur focus-within:ring-[3px]">
         <SearchIcon />
         <input
           type="search"
           value={query}
-          onChange={(event) => void runSearch(event.target.value)}
+          onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setOpen(results.length > 0)}
           placeholder="Search a place"
           aria-label="Search a place"
