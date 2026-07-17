@@ -55,3 +55,17 @@ export interface ChargerFilters {
   network: string | null
   connector: string | null
 }
+
+export interface RouteSample {
+  lat: number
+  lng: number
+  fraction: number
+  nearest_dc_fast_miles: number | null
+}
+
+export interface RouteResponse {
+  geometry: [number, number][]
+  distance_miles: number
+  worst_gap_miles: number
+  samples: RouteSample[]
+}

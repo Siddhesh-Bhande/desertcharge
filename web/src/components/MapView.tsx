@@ -1,4 +1,4 @@
-import { ScatterplotLayer } from '@deck.gl/layers'
+import { PathLayer, ScatterplotLayer } from '@deck.gl/layers'
 import { H3HexagonLayer } from '@deck.gl/geo-layers'
 import { MapboxOverlay } from '@deck.gl/mapbox'
 import type { Layer } from '@deck.gl/core'
@@ -6,7 +6,7 @@ import { Map as MlMap } from 'maplibre-gl'
 import type { IControl, StyleSpecification } from 'maplibre-gl'
 import { useEffect, useRef } from 'react'
 
-import type { BestSite, Bbox, Charger, HexScore } from '../api/types'
+import type { BestSite, Bbox, Charger, HexScore, RouteResponse } from '../api/types'
 import type { MapLayer, SelectedPoint } from '../store/useAppStore'
 import { colors, scoreColorRgba } from '../lib/tokens'
 
@@ -50,14 +50,29 @@ interface MapViewProps {
   chargers: Charger[]
   bestSites: BestSite[]
   grid: HexScore[]
+  route: RouteResponse | null
   layer: MapLayer
   onSelect: (lat: number, lng: number) => void
   onBboxChange: (bbox: Bbox) => void
 }
 
 function buildLayers(props: MapViewProps): Layer[] {
-  const { layer, chargers, bestSites, grid, selected } = props
+  const { layer, chargers, bestSites, grid, selected, route } = props
   const layers: Layer[] = []
+
+  if (route) {
+    layers.push(
+      new PathLayer<{ path: [number, number][] }>({
+        id: 'route',
+        data: [{ path: route.geometry }],
+        getPath: (d) => d.path,
+        getColor: rgba(colors.brass400, 235),
+        widthMinPixels: 4,
+        capRounded: true,
+        jointRounded: true,
+      }),
+    )
+  }
 
   if (layer === 'heat') {
     layers.push(
@@ -175,7 +190,7 @@ export function MapView(props: MapViewProps) {
     overlayRef.current?.setProps({ layers: buildLayers(props) })
     // Rebuild only when the rendered data or active layer changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.layer, props.chargers, props.bestSites, props.grid, props.selected])
+  }, [props.layer, props.chargers, props.bestSites, props.grid, props.selected, props.route])
 
   useEffect(() => {
     if (!props.selected || !mapRef.current) return

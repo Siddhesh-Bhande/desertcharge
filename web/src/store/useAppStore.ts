@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 
-import type { ChargerFilters } from '../api/types'
+import type { ChargerFilters, RouteResponse } from '../api/types'
 
 export type MapLayer = 'chargers' | 'heat' | 'best-sites'
 export type SheetState = 'peek' | 'expanded'
@@ -19,6 +19,8 @@ interface AppState {
   filters: ChargerFilters
   sheet: SheetState
   filtersOpen: boolean
+  routeOpen: boolean
+  route: RouteResponse | null
   select: (point: SelectedPoint) => void
   clearSelection: () => void
   setLayer: (layer: MapLayer) => void
@@ -26,6 +28,8 @@ interface AppState {
   resetFilters: () => void
   setSheet: (sheet: SheetState) => void
   setFiltersOpen: (open: boolean) => void
+  setRouteOpen: (open: boolean) => void
+  setRoute: (route: RouteResponse | null) => void
 }
 
 const emptyFilters: ChargerFilters = { speed: null, network: null, connector: null }
@@ -36,6 +40,8 @@ export const useAppStore = create<AppState>((set) => ({
   filters: emptyFilters,
   sheet: 'peek',
   filtersOpen: false,
+  routeOpen: false,
+  route: null,
   select: (point) => set({ selected: point, sheet: 'peek' }),
   clearSelection: () => set({ selected: null }),
   setLayer: (layer) => set({ layer }),
@@ -43,4 +49,6 @@ export const useAppStore = create<AppState>((set) => ({
   resetFilters: () => set({ filters: emptyFilters }),
   setSheet: (sheet) => set({ sheet }),
   setFiltersOpen: (filtersOpen) => set({ filtersOpen }),
+  setRouteOpen: (routeOpen) => set({ routeOpen }),
+  setRoute: (route) => set({ route }),
 }))

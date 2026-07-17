@@ -6,6 +6,7 @@ import { BottomSheet } from './components/BottomSheet'
 import { FilterSheet } from './components/FilterSheet'
 import { LayerToggle } from './components/LayerToggle'
 import { Legend } from './components/Legend'
+import { RoutePanel } from './components/RoutePanel'
 import { ScorePanel } from './components/ScorePanel'
 import { SearchBar } from './components/SearchBar'
 import { useDebouncedValue } from './lib/useDebounce'
@@ -22,10 +23,13 @@ export function App() {
   const filters = useAppStore((state) => state.filters)
   const sheet = useAppStore((state) => state.sheet)
   const filtersOpen = useAppStore((state) => state.filtersOpen)
+  const routeOpen = useAppStore((state) => state.routeOpen)
+  const route = useAppStore((state) => state.route)
   const select = useAppStore((state) => state.select)
   const setLayer = useAppStore((state) => state.setLayer)
   const setSheet = useAppStore((state) => state.setSheet)
   const setFiltersOpen = useAppStore((state) => state.setFiltersOpen)
+  const setRouteOpen = useAppStore((state) => state.setRouteOpen)
 
   const [bbox, setBbox] = useState<Bbox | null>(null)
   const debouncedBbox = useDebouncedValue(bbox, 400)
@@ -46,6 +50,7 @@ export function App() {
           chargers={chargerData}
           bestSites={bestSites.data ?? []}
           grid={grid.data ?? []}
+          route={route}
           layer={layer}
           onSelect={(lat, lng) => select({ lat, lng })}
           onBboxChange={setBbox}
@@ -56,8 +61,16 @@ export function App() {
         <div className="pointer-events-auto w-full max-w-md">
           <SearchBar />
         </div>
-        <div className="pointer-events-auto">
+        <div className="pointer-events-auto flex items-center gap-2">
           <LayerToggle value={layer} onChange={setLayer} />
+          <button
+            type="button"
+            onClick={() => setRouteOpen(true)}
+            aria-pressed={routeOpen}
+            className="rounded-full bg-basalt-800/95 px-3.5 py-2 text-xs font-semibold text-bone-100/80 shadow-lg backdrop-blur hover:text-bone-100"
+          >
+            Route
+          </button>
         </div>
       </div>
 
@@ -70,7 +83,11 @@ export function App() {
       )}
 
       <div className="absolute inset-x-0 bottom-0 z-20 mx-auto max-w-md">
-        {filtersOpen ? (
+        {routeOpen ? (
+          <BottomSheet>
+            <RoutePanel />
+          </BottomSheet>
+        ) : filtersOpen ? (
           <BottomSheet>
             <FilterSheet />
           </BottomSheet>
