@@ -63,8 +63,13 @@ def desert_score(
     nearest_dc_fast_miles: float,
     weighted_chargers_10mi: float,
 ) -> int:
-    """Return the 0-100 desert score for one hex's inputs."""
-    demand_norm = normalize(population, pop_min, pop_max)
+    """Return the 0-100 desert score for one hex's inputs.
+
+    Demand is normalized on a log scale because population is log-distributed:
+    linear normalization against dense urban maxima would crush the scores of
+    smaller but genuinely underserved desert towns.
+    """
+    demand_norm = normalize(math.log1p(population), math.log1p(pop_min), math.log1p(pop_max))
     gap = supply_gap(nearest_dc_fast_miles, weighted_chargers_10mi)
     return round(100 * math.sqrt(demand_norm) * gap)
 

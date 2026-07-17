@@ -88,7 +88,8 @@ def test_desert_score_zero_demand_is_zero() -> None:
 
 
 def test_desert_score_matches_formula() -> None:
-    demand_norm = 0.25
+    # Demand is log-normalized; pop_min=0 so log1p(pop_min)=0.
+    demand_norm = math.log1p(250.0) / math.log1p(1000.0)
     gap = supply_gap(nearest_dc_fast_miles=15.0, weighted_chargers_10mi=1.5)
     expected = round(100 * math.sqrt(demand_norm) * gap)
     score = desert_score(
