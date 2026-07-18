@@ -6,6 +6,17 @@ import type { ChargerFilters, RouteResponse } from '../api/types'
 
 export type MapLayer = 'chargers' | 'heat' | 'best-sites'
 export type SheetState = 'peek' | 'expanded'
+export type MapTheme = 'dark' | 'light'
+
+function initialMapTheme(): MapTheme {
+  if (
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-color-scheme: light)').matches
+  ) {
+    return 'light'
+  }
+  return 'dark'
+}
 
 export interface SelectedPoint {
   lat: number
@@ -21,6 +32,7 @@ interface AppState {
   filtersOpen: boolean
   routeOpen: boolean
   route: RouteResponse | null
+  mapTheme: MapTheme
   select: (point: SelectedPoint) => void
   clearSelection: () => void
   setLayer: (layer: MapLayer) => void
@@ -30,6 +42,7 @@ interface AppState {
   setFiltersOpen: (open: boolean) => void
   setRouteOpen: (open: boolean) => void
   setRoute: (route: RouteResponse | null) => void
+  toggleMapTheme: () => void
 }
 
 const emptyFilters: ChargerFilters = { speed: null, network: null, connector: null }
@@ -42,6 +55,7 @@ export const useAppStore = create<AppState>((set) => ({
   filtersOpen: false,
   routeOpen: false,
   route: null,
+  mapTheme: initialMapTheme(),
   select: (point) => set({ selected: point, sheet: 'peek' }),
   clearSelection: () => set({ selected: null }),
   setLayer: (layer) => set({ layer }),
@@ -51,4 +65,6 @@ export const useAppStore = create<AppState>((set) => ({
   setFiltersOpen: (filtersOpen) => set({ filtersOpen }),
   setRouteOpen: (routeOpen) => set({ routeOpen }),
   setRoute: (route) => set({ route }),
+  toggleMapTheme: () =>
+    set((state) => ({ mapTheme: state.mapTheme === 'dark' ? 'light' : 'dark' })),
 }))

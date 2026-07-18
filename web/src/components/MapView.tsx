@@ -7,7 +7,7 @@ import type { IControl, StyleSpecification } from 'maplibre-gl'
 import { useEffect, useRef } from 'react'
 
 import type { BestSite, Bbox, Charger, HexScore, RouteResponse } from '../api/types'
-import type { MapLayer, SelectedPoint } from '../store/useAppStore'
+import type { MapLayer, MapTheme, SelectedPoint } from '../store/useAppStore'
 import { colors, scoreColorRgba } from '../lib/tokens'
 
 type Rgba = [number, number, number, number]
@@ -27,20 +27,24 @@ const CHARGER_L2 = rgba(colors.teal600, 220)
 const BEST_SITE = rgba(colors.bone100, 235)
 const SELECTED = rgba(colors.brass400, 255)
 
-const DARK_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    carto: {
-      type: 'raster',
-      tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors © CARTO',
+function styleFor(theme: MapTheme): StyleSpecification {
+  const variant = theme === 'light' ? 'light_all' : 'dark_all'
+  const background = theme === 'light' ? colors.bone100 : colors.basalt900
+  return {
+    version: 8,
+    sources: {
+      carto: {
+        type: 'raster',
+        tiles: [`https://a.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`],
+        tileSize: 256,
+        attribution: '© OpenStreetMap contributors © CARTO',
+      },
     },
-  },
-  layers: [
-    { id: 'bg', type: 'background', paint: { 'background-color': colors.basalt900 } },
-    { id: 'carto', type: 'raster', source: 'carto' },
-  ],
+    layers: [
+      { id: 'bg', type: 'background', paint: { 'background-color': background } },
+      { id: 'carto', type: 'raster', source: 'carto' },
+    ],
+  }
 }
 
 const MOJAVE: [number, number] = [-116.0, 35.5]
@@ -52,6 +56,7 @@ interface MapViewProps {
   grid: HexScore[]
   route: RouteResponse | null
   layer: MapLayer
+  theme: MapTheme
   onSelect: (lat: number, lng: number) => void
   onBboxChange: (bbox: Bbox) => void
 }
@@ -146,6 +151,7 @@ export function MapView(props: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
   const overlayRef = useRef<MapboxOverlay | null>(null)
+  const firstThemeRef = useRef(true)
   const propsRef = useRef(props)
   propsRef.current = props
 
@@ -153,7 +159,7 @@ export function MapView(props: MapViewProps) {
     if (!containerRef.current) return
     const map = new MlMap({
       container: containerRef.current,
-      style: DARK_STYLE,
+      style: styleFor(propsRef.current.theme),
       center: MOJAVE,
       zoom: 6,
       attributionControl: { compact: true },
@@ -200,6 +206,15 @@ export function MapView(props: MapViewProps) {
       speed: 1.2,
     })
   }, [props.selected])
+
+  // Swap the basemap when the theme changes (the map is created with the initial one).
+  useEffect(() => {
+    if (firstThemeRef.current) {
+      firstThemeRef.current = false
+      return
+    }
+    mapRef.current?.setStyle(styleFor(props.theme))
+  }, [props.theme])
 
   // Explicit height: maplibre adds `.maplibregl-map { position: relative }` to this
   // element, which would override `absolute inset-0` and collapse its height to 0.

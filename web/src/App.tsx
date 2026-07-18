@@ -25,11 +25,13 @@ export function App() {
   const filtersOpen = useAppStore((state) => state.filtersOpen)
   const routeOpen = useAppStore((state) => state.routeOpen)
   const route = useAppStore((state) => state.route)
+  const mapTheme = useAppStore((state) => state.mapTheme)
   const select = useAppStore((state) => state.select)
   const setLayer = useAppStore((state) => state.setLayer)
   const setSheet = useAppStore((state) => state.setSheet)
   const setFiltersOpen = useAppStore((state) => state.setFiltersOpen)
   const setRouteOpen = useAppStore((state) => state.setRouteOpen)
+  const toggleMapTheme = useAppStore((state) => state.toggleMapTheme)
 
   const [bbox, setBbox] = useState<Bbox | null>(null)
   const debouncedBbox = useDebouncedValue(bbox, 400)
@@ -52,6 +54,7 @@ export function App() {
           grid={grid.data ?? []}
           route={route}
           layer={layer}
+          theme={mapTheme}
           onSelect={(lat, lng) => select({ lat, lng })}
           onBboxChange={setBbox}
         />
@@ -70,6 +73,32 @@ export function App() {
             className="rounded-full bg-basalt-800/95 px-3.5 py-2 text-xs font-semibold text-bone-100/80 shadow-lg backdrop-blur hover:text-bone-100"
           >
             Route
+          </button>
+          <button
+            type="button"
+            onClick={toggleMapTheme}
+            aria-label={mapTheme === 'dark' ? 'Switch to light map' : 'Switch to dark map'}
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-basalt-800/95 text-bone-100/80 shadow-lg backdrop-blur hover:text-bone-100"
+          >
+            {mapTheme === 'dark' ? (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6 19 19M19 5l-1.4 1.4M6.4 17.6 5 19" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
